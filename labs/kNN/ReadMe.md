@@ -6,12 +6,14 @@ kNN laboratory work
 kernel name = uniform
 distance name = manhattan
 k-neighbour = 29
+f measure = 0.9866720021341869
 ```
 
 
 ### for fixed window
 ```
-kernel name =
-distance name =
-window = 29
+kernel name = quartic
+distance name = manhattan
+window = 0.07341706188714432
+f measure = 0.9869332612807349
 ```

@@ -3,13 +3,14 @@ import matplotlib.pyplot as plt
 
 
 class kNNWinner:
-    def __init__(self, kernel_name, dist_name, window_option, f_measure):
+    def __init__(self, kernel_name, dist_name, window_option):
         self.kernel_name = kernel_name
         self.dist_name = dist_name
         self.window_option = window_option
-        self.f_measure = f_measure
 
     def draw(self, steps):
+        f_measure = []
+        steps = range(1, 15)
         plt.plot(f_measure, steps)
 
         plt.suptitle("kernel: '" + self.kernel_name + "' dist_name: '" + self.dist_name + "'")
