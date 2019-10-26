@@ -1,19 +1,21 @@
 kNN laboratory work
 ---
 
+## Brute force results:
+
 ### for variable window
 ```
 kernel name = uniform
-distance name = manhattan
-k-neighbour = 29
-f measure = 0.9866720021341869
+distance name = chebyshev
+k-neighbour = 13
+f measure = 0.9735999269606499
 ```
 
 
 ### for fixed window
 ```
-kernel name = quartic
-distance name = manhattan
-window = 0.07341706188714432
-f measure = 0.9869332612807349
+kernel name = triangular
+distance name = chebyshev
+window = 0.168
+f measure = 0.9672662944838836
 ```
