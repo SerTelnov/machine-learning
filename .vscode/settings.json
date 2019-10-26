@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "*.ml": "ocaml",
+        "*.mli": "ocaml",
+        "*.mly": "ocaml",
+        "*.mll": "ocaml",
+        "*.idr": "idris",
+        "xhash": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp"
+    },
+    "python.pythonPath": "C:\\Users\\Elena\\AppData\\Local\\Programs\\Python\\Python37-32\\python.exe"
+}
