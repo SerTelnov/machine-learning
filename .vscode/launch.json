@@ -15,14 +15,14 @@
       "name": "Python: labs",
       "type": "python",
       "request": "launch",
-      "program": "${workspaceFolder}/labs/kNN/brute_force.py",
+      "program": "${workspaceFolder}/labs/linear/compare_score.py",
       "console": "integratedTerminal"
     },
     {
       "name": "(gdb) Launch",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/codeforces/out/a.exe",
+      "program": "${workspaceFolder}/codeforces/out/d.exe",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
