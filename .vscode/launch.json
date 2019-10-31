@@ -15,7 +15,7 @@
       "name": "Python: labs",
       "type": "python",
       "request": "launch",
-      "program": "${workspaceFolder}/labs/linear/compare_score.py",
+      "program": "${workspaceFolder}/labs/linear/tmp.py",
       "console": "integratedTerminal"
     },
     {

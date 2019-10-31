@@ -1,54 +1,52 @@
 import math
 import numpy as np
 
-
-class Dataset(object):    
+class Dataset(object):
     def __init__(self, X, Y, attribute_number):
         self.X = X
         self.Y = Y
         self.attribute_number = attribute_number
 
-def __init_weight__(m):
+def __init_weight(m):
     limit = 1.0 / (2.0 * m)
-    return np.random.uniform(low = -limit, high = limit, size = m)
+    return np.random.normal(-limit, limit, m)
 
-def calc_answers(X, W):
-    return X @ W
+def lose_function(X, W, Y):
+    return np.sum((Y - X.dot(W)) ** 2) / Y.size
 
-def lose_function(A, Y):
-    return np.sum(np.power(Y - A, 2)) / Y.size
+def __update_weight(X, Y, W):
+    curr_diffs = X.dot(W) - Y
 
+    Gr = X.T.dot(curr_diffs * 2)
+    h = np.sum(curr_diffs / X.dot(Gr)) / Y.size
 
-def __update_weight__(X, Y, W, attribute_number):
-    curr_diffs = calc_answers(X, W) - Y
-
-    Gr = np.sum(((X.T) * (curr_diffs * 2)).T, axis = 0)
-    h = np.sum(curr_diffs / (X @ Gr)) / Y.size
-
-    return W - h * np.true_divide(Gr, Y.size)
-
+    return W - h * Gr
 
 def gradient_descent_steps(dataset, max_iter):
-    W = __init_weight__(dataset.attribute_number)
-
     X = np.array(dataset.X)
     Y = np.array(dataset.Y)
+    W = __init_weight(dataset.attribute_number)
 
     for _ in range(max_iter):
-        W = __update_weight__(X, Y, W, dataset.attribute_number)
+        W = __update_weight(X, Y, W)
 
     return W
 
 def gradient_descent(dataset):
-    W = __init_weight__(dataset.attribute_number)
-    l = 0.1
+    X = np.array(dataset.X)
+    Y = np.array(dataset.Y)
+    W = __init_weight(dataset.attribute_number)
+
+    q = lose_function(X, W, Y)
+    while q > 0.01:
+        W = __update_weight(X, Y, W)
+        q = lose_function(X, W, Y)
+
+    return W
+
+def generalized_inverse(dataset):
     X = np.array(dataset.X)
     Y = np.array(dataset.Y)
 
-    q = lose_function(calc_answers(X, W), Y)
-    while q > 1.1:
-        W = __update_weight__(X, Y, W, dataset.attribute_number)
-        eplison = lose_function(calc_answers(X, W), Y)
-        q = l * eplison + (1 - l) * q
-
-    return W
+    X_ = np.linalg.pinv(X)
+    return np.matmul(X_, Y)
