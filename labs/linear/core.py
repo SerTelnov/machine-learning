@@ -1,6 +1,8 @@
 import math
 import numpy as np
 
+MAX_ITER = 1000
+
 class Dataset(object):
     def __init__(self, X, Y, attribute_number):
         self.X = X
@@ -18,9 +20,10 @@ def __update_weight(X, Y, W):
     curr_diffs = X.dot(W) - Y
 
     Gr = X.T.dot(curr_diffs * 2)
-    h = np.sum(curr_diffs / X.dot(Gr)) / Y.size
+    # h = np.sum(curr_diffs / X.dot(Gr)) / Y.size
+    # return W - h * Gr
 
-    return W - h * Gr
+    return W - (10 ** (-19)) * Gr
 
 def gradient_descent_steps(dataset, max_iter):
     X = np.array(dataset.X)
@@ -38,9 +41,13 @@ def gradient_descent(dataset):
     W = __init_weight(dataset.attribute_number)
 
     q = lose_function(X, W, Y)
+    iter = 0
     while q > 0.01:
         W = __update_weight(X, Y, W)
         q = lose_function(X, W, Y)
+        iter += 1
+        if iter == MAX_ITER:
+            break
 
     return W
 
