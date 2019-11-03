@@ -42,7 +42,7 @@ def gradient_descent(dataset):
 
     q = lose_function(X, W, Y)
     iter = 0
-    while q > 0.01:
+    while q > 0.0001:
         W = __update_weight(X, Y, W)
         q = lose_function(X, W, Y)
         iter += 1
@@ -55,5 +55,8 @@ def generalized_inverse(dataset):
     X = np.array(dataset.X)
     Y = np.array(dataset.Y)
 
-    X_ = np.linalg.pinv(X)
-    return np.matmul(X_, Y)
+    x_t = X.T
+    x_t_x = x_t.dot(X)
+
+    return np.linalg.inv(x_t_x + (10) * np.eye(x_t_x.size)).dot(x_t).dot(Y)
+    # return np.matmul(np.linalg.pinv(X), Y)

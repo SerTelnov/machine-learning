@@ -25,9 +25,9 @@ for i in range(1, 8):
   print("Dataset #" + str(i))
 
   train, test = read_data(TEST_DATA_PATH + str(i) + ".txt")
-  gd_W = core.gradient_descent(train)
-  gd_score = evaluate_nrmse_score(test, gd_W)
-  print("for gradient descent NRMSE: '" + str(gd_score) + "'")
+  # gd_W = core.gradient_descent(train)
+  # gd_score = evaluate_nrmse_score(test, gd_W)
+  # print("for gradient descent NRMSE: '" + str(gd_score) + "'")
 
   gi_W = core.generalized_inverse(train)
   gi_score = evaluate_nrmse_score(test, gi_W)
