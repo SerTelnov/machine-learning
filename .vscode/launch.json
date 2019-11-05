@@ -13,11 +13,6 @@
       "cwd": "${workspaceFolder}",
       "launchCompleteCommand": "exec-run",
       "environment": [],
-      // "externalConsole": false,
-      // "terminal": "integrated",
-      "console": "integratedTerminal",
-
-      // "stdio": ["${workspaceRoot}/codeforces/out/input.txt", "log.txt"],
       "linux": {
         "MIMode": "gdb",
         "miDebuggerPath": "/usr/bin/gdb"
