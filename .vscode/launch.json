@@ -5,6 +5,32 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "C++ Launch",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceRoot}/codeforces/out/solution.exe",
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "launchCompleteCommand": "exec-run",
+      "environment": [],
+      // "externalConsole": false,
+      // "terminal": "integrated",
+      "console": "integratedTerminal",
+
+      // "stdio": ["${workspaceRoot}/codeforces/out/input.txt", "log.txt"],
+      "linux": {
+        "MIMode": "gdb",
+        "miDebuggerPath": "/usr/bin/gdb"
+      },
+      "osx": {
+        "MIMode": "lldb"
+      },
+      "windows": {
+        "MIMode": "gdb",
+        "miDebuggerPath": "C:\\MinGw\\bin\\gdb.exe"
+      }
+    },
+    {
       "name": "Python: codeforces",
       "type": "python",
       "request": "launch",
@@ -22,7 +48,7 @@
       "name": "(gdb) Launch",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/codeforces/out/d.exe",
+      "program": "${workspaceFolder}/codeforces/out/solution.exe",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

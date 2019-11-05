@@ -11,9 +11,9 @@
         "-g",
         "-Wall",
         "-std=c++11",
-        "codeforces/d.cpp",
+        "codeforces/e.cpp",
         "-o",
-        "codeforces/out/d"
+        "codeforces/out/solution.exe"
       ],
       "group": {
         "kind": "build",
