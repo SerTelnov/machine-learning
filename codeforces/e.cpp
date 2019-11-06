@@ -8,8 +8,7 @@
 using namespace std;
 
 const int MAX_N = 100;
-const int MAX_ITER = 300;
-const int MAX_PASSED = 50;
+const int MAX_PASSED = 5;
 
 const double TOL = 1e-9;
 const double DIFF_EPS = 1e-8;
@@ -17,17 +16,19 @@ const double DIFF_EPS = 1e-8;
 double K[MAX_N][MAX_N];
 double Y[MAX_N];
 double alfa_values[MAX_N];
-double b = 0;
+double b = 0.0;
 
 int last_idx = 0;
 
 int myrand(int idx, int limit) {
-  while (last_idx == idx) {
+  while (true) {
     if (++last_idx == limit) {
       last_idx = 0;
     }
+    if (last_idx != idx) {
+      return last_idx;
+    }
   }
-  return last_idx;
 }
 
 void read_data(int n) {
@@ -52,7 +53,7 @@ void init_lh(double* lowest, double* highest, int i, int j, double c) {
 double calc_f(int idx, int n) {
   double res = 0.0;
   for (int i = 0; i != n; ++i) {
-    res += alfa_values[idx] * Y[idx] * K[idx][i];
+    res += alfa_values[i] * Y[i] * K[idx][i];
   }
   return res + b;
 }
@@ -65,18 +66,20 @@ double calc_eta(int i, int j) {
   return 2.0 * K[i][j] - K[i][i] - K[j][j];
 }
 
-void update_b(int i, int j, double alfa1, double alfa2, double err1, double err2, double c) {
-  double b1 = b - err1 - Y[i] * (alfa1 - alfa_values[i]) * K[i][i]
-                       - Y[j] * (alfa2 - alfa_values[j]) * K[i][j];
-  double b2 = b - err2 - Y[i] * (alfa1 - alfa_values[i]) * K[i][j]
-                       - Y[j] * (alfa2 - alfa_values[j]) * K[j][j];
+void update_b(int i, int j, double old_alfai, double old_alfaj, double erri, double errj, double c) {
+  double deltai = alfa_values[i] - old_alfai;
+  double deltaj = alfa_values[j] - old_alfaj;
+  double b1 = b - erri - Y[i] * deltai * K[i][i]
+                       - Y[j] * deltaj * K[i][j];
+  double b2 = b - errj - Y[i] * deltai * K[i][j]
+                       - Y[j] * deltaj * K[j][j];
 
-  if (0 < alfa1 && alfa1 < c) {
+  if (0 < alfa_values[i] && alfa_values[i] < c) {
     b = b1;
-  } else if (0 < alfa2 && alfa2 < c) {
+  } else if (0 < alfa_values[j] && alfa_values[j] < c) {
     b = b2;
   } else {
-    b = (b1 + b2) / 2;
+    b = (b1 + b2) / 2.0;
   }
 }
 
@@ -85,16 +88,17 @@ void smo(int n, double c) {
     alfa_values[i] = 0.;
 
   int passed = 0;
-  int iter = 0;
-  while (passed < MAX_PASSED && iter < MAX_ITER) {
+  while (passed < MAX_PASSED) {
     bool was_upd = false;
     for (int i = 0; i != n; ++i) {
-      double err1 = error_func(i, n);
-      if ((Y[i] * err1 < -TOL && alfa_values[i] < c) ||
-          (Y[i] * err1 > TOL && alfa_values[i] > 0)
+      double erri = error_func(i, n);
+      if ((Y[i] * erri < -TOL && alfa_values[i] < c) ||
+          (Y[i] * erri > TOL && alfa_values[i] > 0)
       ) {
         int j = myrand(i, n);
-        double err2 = error_func(j, n);
+        double errj = error_func(j, n);
+        double old_alfai = alfa_values[i];
+        double old_alfaj = alfa_values[j];
 
         double lowest, highest;
         init_lh(&lowest, &highest, i, j, c);
@@ -106,23 +110,20 @@ void smo(int n, double c) {
         if (eta >= 0)
           continue;
 
-        double alfa2 = alfa_values[j] - Y[j] * (err1 - err2) / eta;
-        if (alfa2 > highest)
-          alfa2 = highest;
-        else if (alfa2 < lowest)
-          alfa2 = lowest;
+        alfa_values[j] -= Y[j] * (erri - errj) / eta;
+        if (alfa_values[j] > highest)
+          alfa_values[j] = highest;
+        else if (alfa_values[j] < lowest)
+          alfa_values[j] = lowest;
 
-        if (abs(alfa_values[j] - alfa2) < DIFF_EPS)
+        if (abs(alfa_values[j] - old_alfaj) < DIFF_EPS)
           continue;
 
-        double alfa1 = alfa_values[i] + Y[i] * Y[j] * (alfa_values[j] - alfa2);
+        alfa_values[i] += Y[i] * Y[j] * (old_alfaj - alfa_values[j]);
 
-        update_b(i, j, alfa1, alfa2, err1, err2, c);
-        alfa_values[i] = alfa1;
-        alfa_values[j] = alfa2;
+        update_b(i, j, old_alfai, old_alfaj, erri, errj, c);
         was_upd = true;
       }
-      iter += (was_upd ? 1 : 0);
     }
     if (!was_upd) {
       passed++;
@@ -139,13 +140,9 @@ int main() {
 
   smo(n, c);
 
-  if (n == 6) {
-    printf("0.0\n0.0\n1.0\n1.0\n0.0\n0.0\n-5.0");
-  } else {
-    for (int i = 0; i != n; ++i) {
-      printf("%lf\n", alfa_values[i]);
-    }
- 
-    printf("%lf", b); 
-  }
+  for (int i = 0; i != n; ++i)
+    printf("%lf\n", alfa_values[i]);
+
+  printf("%lf", b);
+  return 0;
 }
