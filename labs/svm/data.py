@@ -3,7 +3,7 @@ import numpy as np
 from sklearn import preprocessing
 
 def read_data(path):
-  df = pd.read_csv(resource_path)
+  df = pd.read_csv(path)
   df['class_numeric'] = df['class'].apply(lambda value: {'P': 1, 'N': -1}[value])
 
   min_max_scaler = preprocessing.MinMaxScaler()
