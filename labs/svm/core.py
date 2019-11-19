@@ -1,8 +1,8 @@
 import numpy as np
 
-TOL = 1e-9
-DIFF_EPS = 1e-8
-MAX_PASSED = 3
+TOL = 1e-6
+DIFF_EPS = 1e-5
+MAX_PASSED = 10
 
 class SVM:
   def __init__(self, X, Y, kermel_func):
