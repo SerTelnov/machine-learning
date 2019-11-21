@@ -29,15 +29,16 @@
       "name": "Python: codeforces",
       "type": "python",
       "request": "launch",
-      "program": "${workspaceFolder}/codeforces/d.py",
+      "program": "${workspaceFolder}/codeforces/f.py",
       "console": "integratedTerminal"
     },
     {
       "name": "Python: labs",
       "type": "python",
       "request": "launch",
-      "program": "${workspaceFolder}/labs/svm/test.py",
-      "console": "integratedTerminal"
+      "program": "${workspaceFolder}/labs/bayes/test.py",
+      "console": "integratedTerminal",
+      "args": ["${workspaceFolder}"]
     },
     {
       "name": "(gdb) Launch",
