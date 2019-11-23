@@ -58,5 +58,5 @@ def generalized_inverse(dataset):
     x_t = X.T
     x_t_x = x_t.dot(X)
 
-    return np.linalg.inv(x_t_x + (10) * np.eye(len(x_t_x))).dot(x_t).dot(Y)
-    # return np.matmul(np.linalg.pinv(X), Y)
+#     return np.linalg.inv(x_t_x + (10) * np.eye(len(x_t_x))).dot(x_t).dot(Y)
+    return np.matmul(np.linalg.pinv(X), Y)
