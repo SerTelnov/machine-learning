@@ -11,7 +11,7 @@
         "-g",
         "-Wall",
         "-std=c++11",
-        "codeforces/e.cpp",
+        "codeforces/g.cpp",
         "-o",
         "codeforces/out/solution.exe"
       ],

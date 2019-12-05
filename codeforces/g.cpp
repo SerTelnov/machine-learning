@@ -22,7 +22,7 @@ int n;
 int Y[MAX_N];
 int X[MAX_N][MAX_M];
 
-unordered_map<int, pair<int, int>> tree_idx_map;
+int node_counter = 0;
 
 class Question {
   public:
@@ -45,11 +45,13 @@ class Node {
     Node* right;
     Question question;
     int class_result;
+    int idx;
     bool is_leaf;
 
     Node(
       int _class
     ) : class_result(_class)
+      , idx(0)
       , is_leaf(true)
       {}
 
@@ -61,24 +63,15 @@ class Node {
       , right(_right)
       , question(q)
       , class_result(-1)
+      , idx(0)
       , is_leaf(false)
       {}
 };
 
-class Groups {
-  public:
-    vector<int> left;
-    vector<int> right;
-
-    Groups() {}
-
-    Groups(
-      vector<int> l,
-      vector<int> r
-    ) : left(l)
-      , right(r)
-      {}
-};
+int curr_comp_attribute = -1;
+bool X_ids_comp(int idx1, int idx2) {
+  return X[idx1][curr_comp_attribute] < X[idx2][curr_comp_attribute];
+}
 
 void read_input() {
   scanf("%d%d%d%d", &attribute_number, &class_number, &max_depth, &n);
@@ -88,186 +81,173 @@ void read_input() {
       scanf("%d", &X[i][j]);
     }
     scanf("%d", &Y[i]);
-    --Y[i];
   }
 }
 
-unordered_set<int> collect_class(vector<int> xIds) {
-  unordered_set<int> class_ids;
-  for (int i : xIds) {
-    class_ids.insert(Y[i]);
-  }
-  return class_ids;
-}
-
-bool accept(int xId, Question q) {
+bool accept(int xId, Question & q) {
   return X[xId][q.attribute_idx] < q.value;
 }
 
-Groups split(vector<int> xIds, Question q) {
-  vector<int> left;
-  vector<int> right;
-
+void split(vector<int> & xIds, Question & q, vector<int> & left, vector<int> & right) {
   for (int xId : xIds) {
     if (accept(xId, q))
       left.push_back(xId);
     else 
       right.push_back(xId);
   }
-
-  return Groups(left, right);
 }
 
-double calc_gini(vector<int> ids, unordered_set<int> class_ids, int entities_number) {
-  if (ids.empty()) {
-    return 0.0;
-  }
-
-  unordered_map<int, int> class_mapper;
-  for (int id : ids) {
-    if (class_mapper.find(Y[id]) == class_mapper.end())
-      class_mapper[id] = 0;
-    ++class_mapper[id];
-  }
-
-  double score = 0.0;
-  for (int class_id : class_ids) {
-    double p = class_mapper[class_id] / ids.size();
-    score += p * p;
-  }
-
-  return (1.0 - score) * (ids.size() / entities_number);
-}
-
-double gini_index(Groups groups, unordered_set<int> class_ids) {
-  int entities_number = groups.left.size() + groups.right.size();
-  return calc_gini(groups.left, class_ids, entities_number) + 
-         calc_gini(groups.right, class_ids, entities_number);
-}
-
-pair<Groups, Question> make_split(vector<int> xIds) {
-  unordered_set<int> class_ids = collect_class(xIds);
-
-  Groups groups;
-  Question q;
-  double gini_value = 1000;
+Question make_split(vector<int> & xIds, vector<int> & left, vector<int> & right) {
+  double gini_value_winner = -1000;
+  double value_winner = -2e9;
+  int attr_idx_winner = -1;
 
   for (int attr_idx = 0; attr_idx != attribute_number; ++attr_idx) {
-    for (int xId : xIds) {
-      Question curr_q = Question(attr_idx, X[xId][attr_idx]);
-      Groups curr_groups = split(xIds, curr_q);
+    curr_comp_attribute = attr_idx;
+    sort(xIds.begin(), xIds.end(), X_ids_comp);
 
-      double curr_gini = gini_index(curr_groups, class_ids);
-      if (curr_gini < gini_value) {
-        gini_value = curr_gini;
-        q = curr_q;
-        groups = curr_groups;
+    vector<int> left_class_counters(class_number, 0), right_class_counters(class_number, 0);
+    for (int id : xIds)
+      ++right_class_counters[Y[id] - 1];
+
+    double left_class_sum = 0.0;
+    double right_class_sum = 0.0;
+
+    for (int right_class : right_class_counters) {
+      double x = double(right_class);
+      right_class_sum += x * x;
+    }
+
+    for (size_t i = 0; i != xIds.size(); ++i) {
+      int curr_idx = xIds[i];
+
+      double x = double(right_class_counters[Y[curr_idx] - 1]);
+      right_class_sum -= x * x;
+      --right_class_counters[Y[curr_idx] - 1];
+
+      x = double(right_class_counters[Y[curr_idx] - 1]);
+      right_class_sum += x * x;
+
+      x = double(left_class_counters[Y[curr_idx] - 1]);
+      left_class_sum -= x * x;
+
+      ++left_class_counters[Y[curr_idx] - 1];
+      x = double(left_class_counters[Y[curr_idx] - 1]);
+      left_class_sum += x * x;
+
+      double left_item_count = i + 1;
+      double right_item_count = xIds.size() - left_item_count;
+
+      double curr_gini = left_item_count ? left_class_sum / left_item_count : 0;
+      if (right_item_count)
+        curr_gini += right_class_sum / right_item_count;
+
+      if (gini_value_winner < curr_gini) {
+        gini_value_winner = curr_gini;
+        attr_idx_winner = attr_idx;
+        value_winner = right_item_count ? double(X[curr_idx][attr_idx] + X[xIds[i + 1]][attr_idx]) / 2 : 2e9;
       }
     }
   }
 
-  return { groups, q };
+  Question q = Question(attr_idx_winner, value_winner);
+  split(xIds, q, left, right);
+  return q;
 }
 
-Node to_terminal(vector<int> ids) {
-  unordered_map<int, int> class_mapper;
+Node* to_terminal(vector<int> & ids) {
+  vector<int> class_mapper(class_number, 0);
   int max_class = 0;
   int max_class_id = -1;
 
   for (int id : ids) {
-    if (class_mapper.find(Y[id]) == class_mapper.end())
-      class_mapper[id] = 0;
     class_mapper[id]++;
-    
+
     if (max_class < class_mapper[id]) {
       max_class = class_mapper[id];
-      max_class_id = id;
+      max_class_id = Y[id];
     }
   }
 
-  return Node(max_class_id);
+  return new Node(max_class_id);
 }
 
-Node to_terminal(Groups groups) {
-  unordered_map<int, int> class_mapper;
+Node* to_terminal(vector<int> & left, vector<int> & right) {
+  vector<int> class_mapper(class_number, 0);
   int max_class = 0;
   int max_class_id = -1;
 
-  for (int id : groups.left) {
-    if (class_mapper.find(Y[id]) == class_mapper.end())
-      class_mapper[id] = 0;
-    class_mapper[id]++;
-    
+  for (int id : left) {
+    class_mapper[Y[id] - 1]++;
+    if (max_class < class_mapper[Y[id] - 1]) {
+      max_class = class_mapper[Y[id] - 1];
+      max_class_id = Y[id];
+    }
   }
 
-  for (int id : groups.right) {
-    if (class_mapper.find(Y[id]) == class_mapper.end())
-      class_mapper[id] = 0;
-    class_mapper[id]++;
+  for (int id : right) {
+    class_mapper[Y[id] - 1]++;
 
-    if (max_class < class_mapper[id]) {
-      max_class = class_mapper[id];
-      max_class_id = id;
-    } 
+    if (max_class < class_mapper[Y[id] - 1]) {
+      max_class = class_mapper[Y[id] - 1];
+      max_class_id = Y[id];
+    }
   }
 
-  return Node(max_class_id);
+  return new Node(max_class_id);
 }
 
-Node build_tree(vector<int> curr_entities, int depth, int& id) {
-  auto split = make_split(curr_entities);
-  Groups groups = split.first;
-  if (groups.left.empty() || groups.right.empty()) {
+Node* build_tree(vector<int> & curr_entities, int depth) {
+  vector<int> left, right;
+  Question q = make_split(curr_entities, left, right);
+
+  if (left.empty() || right.empty()) {
     return to_terminal(curr_entities);    
   } else if (depth >= max_depth) {
-    return to_terminal(groups);
+    return to_terminal(left, right);
+  } else {
+    Node* left_node = build_tree(left, depth + 1);
+    Node* right_node = build_tree(right, depth + 1);
+
+    return new Node(left_node, right_node, q);
   }
-
-  ++id;
-  int curr_id = id;
-  Node left = build_tree(groups.left, depth + 1, id);
-  int left_id = id;
-  Node right = build_tree(groups.right, depth + 1, id);
-  int right_id = id;
-  tree_idx_map.insert({curr_id, {left_id, right_id}});
-
-  return Node(&left, &right, split.second);
 }
 
-Node build_tree() {
-  vector<int> ids(n);
+Node* build_tree() {
+  vector<int> ids;
   for (int i = 0; i != n; ++i) {
     ids.push_back(i);
   }
 
-  int tmp = 0;
-  return build_tree(ids, 0, tmp);
+  return build_tree(ids, 0);
 }
 
-void print_tree(Node* tree, int& id) {
-  ++id;
-
+void print_tree(Node* tree) {
   if (tree->is_leaf) {
     printf("C %d\n", tree->class_result);
   } else {
-    printf("Q %d %lf", tree->question.attribute_idx, tree->question.value);
-    auto p = tree_idx_map[id];
-    printf("%d %d\n", p.first, p.second);    
+    printf("Q %d %lf ", tree->question.attribute_idx + 1, tree->question.value);
+    printf("%d %d\n", tree->left->idx, tree->right->idx);
 
-    print_tree(tree->left, id);
-    print_tree(tree->right, id);
+    print_tree(tree->left);
+    print_tree(tree->right);
   }
 }
 
-void print_tree(Node tree) {
-  printf("%d\n", tree_idx_map.size());
-  int id = 0;
-  print_tree(&tree, id);
+void dfs(Node * tree) {
+  tree->idx = ++node_counter;
+  if (!tree->is_leaf) {
+    dfs(tree->left);
+    dfs(tree->right);
+  }
 }
 
 int main() {
   read_input();
-  Node tree = build_tree();
+  Node* tree = build_tree();
+
+  dfs(tree);
+  printf("%d\n", node_counter);
   print_tree(tree);
   return 0;
 }
