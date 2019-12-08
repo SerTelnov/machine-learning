@@ -155,41 +155,24 @@ Question make_split(vector<int> & xIds, vector<int> & left, vector<int> & right)
   return q;
 }
 
-Node* to_terminal(vector<int> & ids) {
-  vector<int> class_mapper(class_number, 0);
-  int max_class = 0;
-  int max_class_id = -1;
-
-  for (int id : ids) {
-    class_mapper[id]++;
-
-    if (max_class < class_mapper[id]) {
-      max_class = class_mapper[id];
-      max_class_id = Y[id];
-    }
-  }
-
-  return new Node(max_class_id);
-}
-
 Node* to_terminal(vector<int> & left, vector<int> & right) {
-  vector<int> class_mapper(class_number, 0);
+  vector<int> classes(class_number, 0);
   int max_class = 0;
   int max_class_id = -1;
 
   for (int id : left) {
-    class_mapper[Y[id] - 1]++;
-    if (max_class < class_mapper[Y[id] - 1]) {
-      max_class = class_mapper[Y[id] - 1];
+    classes[Y[id] - 1]++;
+    if (max_class < classes[Y[id] - 1]) {
+      max_class = classes[Y[id] - 1];
       max_class_id = Y[id];
     }
   }
 
   for (int id : right) {
-    class_mapper[Y[id] - 1]++;
+    classes[Y[id] - 1]++;
 
-    if (max_class < class_mapper[Y[id] - 1]) {
-      max_class = class_mapper[Y[id] - 1];
+    if (max_class < classes[Y[id] - 1]) {
+      max_class = classes[Y[id] - 1];
       max_class_id = Y[id];
     }
   }
@@ -197,12 +180,29 @@ Node* to_terminal(vector<int> & left, vector<int> & right) {
   return new Node(max_class_id);
 }
 
+Node* to_terminal(vector<int> & ids) {
+  auto vv = vector<int>();
+  return to_terminal(ids, vv);
+}
+
+bool is_one_class(vector<int> & ids) {
+  unordered_set<int> classes;
+  for (auto id : ids) {
+    classes.insert(Y[id]);
+  }
+  return classes.size() == 1;
+}
+
 Node* build_tree(vector<int> & curr_entities, int depth) {
+  if (is_one_class(curr_entities)) {
+    return to_terminal(curr_entities);
+  }
+
   vector<int> left, right;
   Question q = make_split(curr_entities, left, right);
 
   if (left.empty() || right.empty()) {
-    return to_terminal(curr_entities);    
+    return to_terminal(curr_entities);
   } else if (depth >= max_depth) {
     return to_terminal(left, right);
   } else {
@@ -223,6 +223,9 @@ Node* build_tree() {
 }
 
 void print_tree(Node* tree) {
+  if (!tree)
+    return;
+
   if (tree->is_leaf) {
     printf("C %d\n", tree->class_result);
   } else {
@@ -235,6 +238,9 @@ void print_tree(Node* tree) {
 }
 
 void dfs(Node * tree) {
+  if (!tree)
+    return;
+
   tree->idx = ++node_counter;
   if (!tree->is_leaf) {
     dfs(tree->left);
