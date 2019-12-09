@@ -36,7 +36,7 @@
       "name": "Python: labs",
       "type": "python",
       "request": "launch",
-      "program": "${workspaceFolder}/labs/bayes/test.py",
+      "program": "${workspaceFolder}/labs/tree/data.py",
       "console": "integratedTerminal",
       "args": ["${workspaceFolder}"]
     },
