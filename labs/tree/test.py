@@ -34,3 +34,11 @@ for _ in range(1, tree.height):
         h_winner = h
 
 print('winner h = ' + str(h_winner) + ' with accuracy ' + str(accuracy_winner))
+
+forest = core.RandomForest(X_train, Y_train)
+
+predictions = list(map(lambda x : forest.classify(x), X_test))
+accuracy = accuracy_score(Y_test, predictions)
+
+print('  build random forest with accuracy ' + str(accuracy))
+print('  accuracy profite ' + str(accuracy_winner - accuracy))

@@ -1,5 +1,8 @@
 import numpy as np
 import math
+from enum import Enum
+from random import randint
+from random import shuffle
 
 class Question:
   def __init__(self, feature_name, feature_value):
@@ -38,12 +41,33 @@ class Leaf(Tree):
   def classify(self, row):
     return self.class_name
 
+class RandomForest:
+  MAX_DEPTH_UNLIMIT = 1E10
+
+  def __init__(self, X, Y):
+    self.X = X
+    self.Y = Y
+    self.classes_quantity = TreeBuilder.classes_quantity(Y)
+    self.forest = [self._build_tree() for _ in range(100)]
+
+  def _build_tree(self):
+    indices = [randint(0, len(self.Y) - 1) for _ in range(int(math.sqrt(len(self.Y))))]
+    _X, _Y = self.X[indices], self.Y[indices]
+    return TreeBuilder(_X, _Y, self.MAX_DEPTH_UNLIMIT, True).build_tree()
+
+  def classify(self, x):
+    classes = np.zeros(self.classes_quantity + 1)
+    for tree in self.forest:
+      classes[tree.classify(x)] += 1
+    return np.argmax(classes)
+
 class TreeBuilder:
-  def __init__(self, X, Y, max_depth):
+  def __init__(self, X, Y, max_depth, is_random_forest = False):
     self.X = X
     self.Y = Y
     self.max_depth = max_depth
-    self.class_quantity = len(self._collect_classes(np.arange(len(Y))))
+    self.is_random_forest = is_random_forest
+    self.class_quantity = TreeBuilder.classes_quantity(Y)
 
   def reduce_height(self, tree, new_height):
     return self.reduce_tree(tree, 0, new_height)
@@ -83,7 +107,8 @@ class TreeBuilder:
   def _make_split(self, indices):
     gini_winner = 2e9
 
-    for feature_idx in range(len(self.X[0])):
+    features = self._get_features()
+    for feature_idx in features:
       ids = list(map(lambda i: (i, self.X[i][feature_idx]), indices))
       ids = sorted(ids, key = lambda pair: pair[1])
       ids = np.fromiter(map(lambda pair: pair[0], ids), int)
@@ -168,9 +193,23 @@ class TreeBuilder:
 
   def _collect_classes(self, ids):
     classes = {}
-    for i in ids:
-      id = self.Y[i]
-      if not id in classes:
-        classes[id] = 0
-      classes[id] += 1
+    for id in ids:
+      y = self.Y[id]
+      if not y in classes:
+        classes[y] = 0
+      classes[y] += 1
     return classes
+
+  @staticmethod
+  def classes_quantity(Y):
+    max_class = -1
+    for y in Y:
+      max_class = max(max_class, y)
+    return max_class
+
+  def _get_features(self):
+    if not self.is_random_forest:
+      return range(len(self.X[0]))
+    arr = np.arange(len(self.X[0]))
+    np.random.shuffle(arr)
+    return arr[:int(math.sqrt(len(self.Y)))]
