@@ -58,57 +58,58 @@ class TreeBuilder:
     return Node(left_tree, right_tree, q)
 
   def _make_split(self, indices):
-    gini_winner = 1000
+    gini_winner = -2e9
 
     for feature_idx in range(len(self.X[0])):
       indices = list(enumerate(map(lambda i: self.X[i][feature_idx], indices)))
       indices = sorted(indices, key = lambda pair: pair[1])
       indices = np.fromiter(map(lambda pair: pair[0], indices), int)
 
-      i = 0
-      curr_value_winner = -2e9
-      gini = self._calc_gini([], indices)
+      left_counters = np.zeros(self.class_quantity)
+      right_counters = np.zeros(self.class_quantity)
 
-      while (i < len(indices)):
-        value = self._calc_value(i, feature_idx, indices)
-        i = self._skip(i, value, feature_idx, indices)
+      for i in indices:
+        right_counters[self.Y[i] - 1] += 1
 
-        curr_gini = self._calc_gini(indices[:i], indices[i:])
-        if gini > curr_gini:
+      left_score, right_score = 0.0, 0.0
+
+      for x in right_counters:
+        right_score += x * x
+
+      value = -2e9
+      gini = right_score / len(indices)
+
+      for idx, i in enumerate(indices):
+        curr_class = self.Y[i] - 1
+        left_item_count = idx + 1
+        right_item_count = len(indices) - left_item_count
+
+        x = right_counters[curr_class]
+        xx = right_counters[curr_class] - 1
+        right_score += xx * xx - x * x
+
+        x = left_counters[curr_class]
+        xx = left_counters[curr_class] + 1
+        left_score += xx * xx - x * x
+
+        right_counters[curr_class] -= 1
+        left_counters[curr_class] += 1
+
+        curr_gini = left_score / left_item_count
+        curr_gini += right_score / right_item_count if right_item_count != 0 else 0
+
+        if gini < curr_gini:
           gini = curr_gini
-          curr_value_winner = value
-        i += 1
-      
-      if gini_winner > gini:
+          value = self._calc_value(i, feature_idx, indices)
+
+      if gini_winner < gini:
         gini_winner = gini
-        value_winner = curr_value_winner
+        value_winner = value
         feature_winner = feature_idx
 
     left, right = self._split(indices, value_winner, feature_winner)
     q = Question(feature_winner, value_winner)
     return left, right, q
-
-  def _skip(self, i, value, feature, ids):
-    while i < len(ids) and self._accept(self.X[ids[i]], feature, value):
-      i += 1
-    return i
-
-  def _calc_gini(self, left, right):
-    n = len(left) + len(right)
-    gini = 0.0
-
-    for group in [left, right]:
-      if len(group) == 0:
-        continue
-
-      score = 0.0
-      classes = self._collect_classes(group).items()
-      for _, count in classes:
-        p = count / len(group)
-        score += p * p
-
-      gini += (1.0 - score) * (len(group) / n)
-    return gini
 
   def _split(self, indices, value, feature):
     left, right = [], []
@@ -130,7 +131,6 @@ class TreeBuilder:
     classes = np.zeros(self.class_quantity)
     for i in indices:
       classes[self.Y[i] - 1] += 1
-
     return Leaf(np.argmax(classes))
 
   def _is_one_class(self, ids):
