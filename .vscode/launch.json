@@ -36,7 +36,7 @@
       "name": "Python: labs",
       "type": "python",
       "request": "launch",
-      "program": "${workspaceFolder}/labs/tree/data.py",
+      "program": "${workspaceFolder}/labs/tree/test.py",
       "console": "integratedTerminal",
       "args": ["${workspaceFolder}"]
     },
