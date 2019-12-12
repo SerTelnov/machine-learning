@@ -36,7 +36,7 @@
       "name": "Python: labs",
       "type": "python",
       "request": "launch",
-      "program": "${workspaceFolder}/labs/tree/test.py",
+      "program": "${workspaceFolder}/labs/boost/test.py",
       "console": "integratedTerminal",
       "args": ["${workspaceFolder}"]
     },

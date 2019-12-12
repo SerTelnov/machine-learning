@@ -1,8 +1,7 @@
 import numpy as np
 import math
 from enum import Enum
-from random import randint
-from random import shuffle
+from random import randint, shuffle
 
 class Question:
   def __init__(self, feature_name, feature_value):
@@ -79,12 +78,12 @@ class TreeBuilder:
       if curr_depth < limit:
         return Node(left, right, tree.question)
       else:
-        return self.union(left, right)
+        return self._union(left, right)
     elif isinstance(tree, Leaf):
       return tree
     raise Exception('Invalid pattern')
 
-  def union(self, a, b):
+  def _union(self, a, b):
     indicies = a.indices + b.indices
     return self._terminal(indicies)
 
