@@ -46,6 +46,9 @@ class AdaBoost:
       self.W = self._upd_weights(self.W, significance, len(self.indices), indices_with_error)
       self.indices = self._chooce_new_indices(self.W, len(self.indices))
 
+  def predict(self, X):
+    return np.fromiter(map(lambda x: self.classify(x), X), int)
+
   def classify(self, x):
     classes_score = np.zeros(2)
     for tree in self.forest:
