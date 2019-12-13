@@ -12,6 +12,11 @@ def read_data(path):
 
   return X, Y
 
+def split_indices_data(n, batches_number = 5):
+    ids = np.arange(n)
+    np.random.shuffle(ids)
+    return np.array_split(ids, batches_number)
+
 def train_dataset(X, Y, ids_batchs, test_num):
     train_ids = __merge(ids_batchs, test_num)
     return X[train_ids], Y[train_ids]

@@ -13,6 +13,6 @@ def polynomial_kernel(d):
 
 def gaussian_kernel(sigma):
   def kernel(xi, xj):
-    return np.exp(-sigma * (np.linalg.norm(xi - xj) ** 2))
-#     return np.exp(-np.sqrt(np.linalg.norm(xi - xj) ** 2 / (2 * sigma **  2)))
+#     return np.exp(-sigma * (np.linalg.norm(xi - xj) ** 2))
+    return np.exp(-np.sqrt(np.linalg.norm(xi - xj) ** 2 / (2 * sigma **  2)))
   return kernel

@@ -3,6 +3,7 @@ import numpy as np
 TOL = 1e-6
 DIFF_EPS = 1e-5
 MAX_PASSED = 10
+MAX_ITER = 100
 
 class SVM:
   def __init__(self, X, Y, kermel_func):
@@ -12,9 +13,19 @@ class SVM:
     self.alpha_values = np.zeros(len(self.X))
     self.b = 0
 
+  def classify(self, X):
+    if type(X) is not np.ndarray:
+        X = np.array(X)
+    return np.fromiter(map(lambda x: self.classify1(x), X), int)
+
+  def classify1(self, x):
+    value = np.sum(x * self.W) + self.b
+    return 1 if value > 0 else -1
+
   def evaluate(self, c):
     passed = 0
-    while passed < MAX_PASSED:
+    iter = 0
+    while passed < MAX_PASSED and iter < MAX_ITER:
       upd_count = 0
       for i in range(len(self.X)):
         erri = self.__calc_error(i)
@@ -48,22 +59,25 @@ class SVM:
         self.b = self.__calc_b(i, j, old_alphai, old_alphaj, erri, errj, c)
         upd_count += 1
 
+      iter += 1
       if upd_count == 0:
         passed += 1
       else:
         passed = 0
-    return self.__compute_w(), self.b
+
+    self.W = self.__compute_w()
+    return self
 
   def __eval_kernel(self, kermel_func):
-    K = [[0 for _ in range(len(self.X))] for _ in range(len(self.X))]
+    K = np.zeros((len(self.X), len(self.X)))
     for i in range(len(self.X)):
       for j in range(len(self.X)):
-        K[i][j] = kermel_func(self.X[i], self.X[j])
+        K[i][j] = kermel_func(self.X[i,:], self.X[j,:])
     return K
 
   def __compute_w(self):
       m, n = np.shape(self.X)
-      w = np.zeros((n,))
+      w = np.zeros(n)
       for i in range(m):
           w += np.multiply(self.alpha_values[i] * self.Y[i], self.X[i,:].T)
       return w
@@ -116,55 +130,6 @@ class SVM:
   def __myrand(i, n):
     idx = i
     while idx == i:
-      idx = int(np.random.uniform(0, n))
+      idx = np.random.randint(0, n)
     return idx
 
-def __calc_f(pr, re):
-  if (pr + re == 0):
-    return 0
-  return 2 * (pr * re) / (pr + re)
-
-def eval_f(rows):
-  k = len(rows)
-  tp = [0] * k
-  fp = [0] * k
-  fn = [0] * k
-  weight = [0] * k
-
-  sum = 0
-  for i, cur_row in enumerate(rows):
-    for idx, val in enumerate(cur_row):
-      sum += val
-      if (idx != i):
-        fn[idx] += val
-        fp[i] += val
-      else:
-        tp[i] += val
-
-  if sum != 0:
-    for i in range(k):
-      weight[i] = (tp[i] + fp[i]) / sum
-
-  pr = [0] * k
-  re = [0] * k
-
-  for i in range(k):
-    if tp[i] + fp[i] != 0:
-      pr[i] = tp[i] / (tp[i] + fp[i])
-    if tp[i] + fn[i] != 0:
-      re[i] = tp[i] / (tp[i] + fn[i])
-
-  pr_macro = 0.0
-  re_macro = 0.0
-
-  for i in range(k):
-    pr_macro += weight[i] * pr[i]
-    re_macro += weight[i] * re[i]
-
-
-  f_micro = 0
-
-  for i in range(k):
-    f_micro += weight[i] * __calc_f(pr[i], re[i])
-
-  return __calc_f(pr_macro, re_macro), f_micro
